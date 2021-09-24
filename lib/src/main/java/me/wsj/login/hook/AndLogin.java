@@ -21,7 +21,7 @@ public class AndLogin {
     }
 
     public void init(Context context) {
-//        LogUtil.d("init");
+        LogUtil.d("AndLogin init()");
         HookUtil.HookAms(context);
     }
 

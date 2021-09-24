@@ -39,6 +39,10 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.3.1'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
+
+    //启动初始化 通过统一的ContentProvider来初始化
+    //App StartUp的设计思路比较简单，就是将多个需要初始化的Sdk在一个provider中完成，
+    //从而减少多个provider带来的性能问题和繁杂的AndroidManifest.xml文件声明
     implementation "androidx.startup:startup-runtime:1.0.0"
 
     api project(path: ':apt_annotation')

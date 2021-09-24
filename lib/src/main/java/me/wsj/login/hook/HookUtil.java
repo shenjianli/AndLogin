@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.wsj.login.Constant;
+import me.wsj.login.utils.LogUtil;
 
 public class HookUtil {
 
@@ -29,6 +30,7 @@ public class HookUtil {
      */
     public static void HookAms(Context context) {
         try {
+            LogUtil.i("HookUtil  Hook AMS ----  start");
             Field singletonField;
             Class<?> iActivityManagerClass;
             // 1，获取Instrumentation中调用startActivity(,intent,)方法的对象
@@ -52,6 +54,9 @@ public class HookUtil {
             singletonField.setAccessible(true);
             Object singleton = singletonField.get(null);
 
+            LogUtil.i("HookUtil  Hook AMS iActivityManagerClass ---- " + iActivityManagerClass.getSimpleName());
+
+
             // 2，获取Singleton中的mInstance，也就是要代理的对象
             Class<?> singletonClass = Class.forName("android.util.Singleton");
             Field mInstanceField = singletonClass.getDeclaredField("mInstance");
@@ -62,6 +67,9 @@ public class HookUtil {
             if (mInstance == null) {
                 return;
             }
+
+            LogUtil.i("HookUtil  Hook AMS mInstance ---- " + mInstance.getClass().getSimpleName());
+
             // 3，对IActivityManager进行动态代理
             Object proxyInstance = Proxy.newProxyInstance(context.getClassLoader(), new Class[]{iActivityManagerClass},
                     (proxy, method, args) -> {
@@ -119,6 +127,7 @@ public class HookUtil {
                 e.printStackTrace();
             }
         }
+        LogUtil.i("该activity是否需要登录 " + requireLoginNames.contains(activityName));
         return requireLoginNames.contains(activityName);
     }
 
@@ -139,6 +148,7 @@ public class HookUtil {
                 e.printStackTrace();
             }
         }
+        LogUtil.i("获取登录activity " + loginActivityClazz.getSimpleName());
         return loginActivityClazz;
     }
 
@@ -161,6 +171,7 @@ public class HookUtil {
                 Method methodNameMethod = methodInClazz.getDeclaredMethod(methodName);
                 methodNameMethod.setAccessible(true);
                 boolean result = (boolean) methodNameMethod.invoke(null);
+                LogUtil.i("是否已经登录 " + result);
                 return result;
             }
         } catch (Exception e) {

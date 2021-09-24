@@ -33,6 +33,24 @@ import per.wsj.annotation.JudgeLogin;
 import per.wsj.annotation.LoginActivity;
 import per.wsj.annotation.RequireLogin;
 
+/**
+ * 注解处理器（Annotation Processor）是javac的一个工具，
+ * 它用来在编译时扫描和处理注解（Annotation）。
+ * 你可以自定义注解，并注册相应的注解处理器（自定义的注解处理器需继承自AbstractProcessor）。
+ *
+ *  注解处理器是运行在独立的虚拟机JVM中，javac启动一个完整Java虚拟机来运行注解处理器。
+ *
+ */
+
+/**
+ * Google提供了一个插件来帮助我们更方便的注册注解处理器，
+ * 你只需要导入对应的依赖包，在自定义的Processor类上方添加@AutoService(Processor.class)即可。
+ * AutoService会自动在META-INF文件夹下生成Processor配置信息文件，该文件里就是实现该服务接口的具体实现类。而当外部程序装配这个模块的时候，
+ * 就能通过该jar包META-INF/services/里的配置文件找到具体的实现类名，并装载实例化，完成模块的注入。
+ * 基于这样一个约定就能很好的找到服务接口的实现类，而不需要再代码里制定，方便快捷。
+ *
+ */
+
 @AutoService(Processor.class)
 @SupportedOptions("room.schemaLocation")
 public class RequireLoginProcessor extends AbstractProcessor {
@@ -47,13 +65,25 @@ public class RequireLoginProcessor extends AbstractProcessor {
 
     private String judgeLoginMethod;
 
+    /**
+     * 每一个注解处理器类都必须有一个空的构造函数。
+     * 然而，这里有一个特殊的init()方法，它会被注解处理工具调用，
+     * 并输入ProcessingEnviroment参数。ProcessingEnviroment提供很多有用的工具类如Elements, Types和Filer等。
+     * @param processingEnvironment
+     */
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
+        System.out.println("RequireLoginProcessor   init");
         super.init(processingEnvironment);
         mMessager = processingEnv.getMessager();
         activityList = new ArrayList<>();
     }
 
+    /**
+     * 这个注解处理器是注册给哪个注解的。注意，它的返回值是一个字符串的集合，
+     * 包含本处理器想要处理的注解类型的合法全称。
+     * @return
+     */
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         HashSet<String> supportTypes = new LinkedHashSet<>();
@@ -63,17 +93,31 @@ public class RequireLoginProcessor extends AbstractProcessor {
         return supportTypes;
     }
 
+    /**
+     * 用来指定你使用的Java版本。通常这里返回SourceVersion.latestSupported()。
+     * @return
+     */
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
     }
 
+    /**
+     * 这相当于每个处理器的主函数main()。
+     * 你在这里写你的扫描、评估和处理注解的代码，
+     * 以及生成Java文件。输入参数RoundEnviroment，可以让你查询出包含特定注解的被注解元素。
+     * @param set
+     * @param roundEnvironment
+     * @return
+     */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         if (set.isEmpty()) {
             return false;
         }
+        System.out.println("RequireLoginProcessor   process");
         mMessager.printMessage(Diagnostic.Kind.WARNING, "\nprocessing...\n");
+
         // 1，获取所有添加了注解的Activity，保存到List中
         parseAnno(roundEnvironment);
 
@@ -92,6 +136,7 @@ public class RequireLoginProcessor extends AbstractProcessor {
         try {
             // 5，生成文件
             javaFile.writeTo(processingEnv.getFiler());
+            mMessager.printMessage(Diagnostic.Kind.WARNING, "\n生成 Java File ...\n" + javaFile.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
